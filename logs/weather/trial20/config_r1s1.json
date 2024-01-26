@@ -1,0 +1,23 @@
+{
+    "logs_folder": "./logs/",
+    "data_path": "data",
+    "subset": false,
+    "batch_size": 64,
+    "num_workers": 4,
+    "epochs": 20,
+    "learning_rate": 0.001,
+    "beta1": 0.9,
+    "weight_decay": 0.004,
+    "momentum": 0.9,
+    "early_stop": false,
+    "train_patience": 20,
+    "flush": false,
+    "best": true,
+    "random_seed": 42,
+    "split_num": 1,
+    "repeat_num": 1,
+    "is_train": true,
+    "trial_num": 20,
+    "dataset": "weather",
+    "latent_dim": 4
+}
