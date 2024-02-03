@@ -36,11 +36,11 @@ def generative_model(noise):
     means = loaded_model.means_
     covariances = loaded_model.covariances_
 
-    simul = np.zeros((4,10_000))
-    for j in range(10000):
+    simul = np.zeros((4,noise.shape[0]))
+    for j in range(noise.shape[0]):
         component_idx = np.random.choice(np.arange(len(weights)), p=weights)
         S = np.linalg.cholesky(covariances[component_idx])
-        simul[:, j] = S @ latent_variable[j, :] + means[component_idx]
+        simul[:, j] = S @ latent_variable[j, :].T + means[component_idx]
 
     simul = (simul * (simul > 0)).T
 
