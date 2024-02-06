@@ -3,12 +3,9 @@ import numpy as np
 from joblib import load
 import ot
 
-
 yields_espsilon = pd.read_csv('CSVs/yields_subset.csv').iloc[:, 2:].to_numpy()
 noise = np.load('data/noise.npy')[:, :4]
-
 loaded_model = load('gmm.joblib')
-
 
 
 weights = loaded_model.weights_
