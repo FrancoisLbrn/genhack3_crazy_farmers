@@ -7,7 +7,7 @@ import numpy as np
 import ot
 
 class VariationalEncoder(nn.Module):
-    def __init__(self, latent_dims, input_dims):  
+    def __init__(self, latent_dims, input_dims):
         super(VariationalEncoder, self).__init__()
 
         self.latent_dims = min(latent_dims, 50)
@@ -33,6 +33,7 @@ class VariationalEncoder(nn.Module):
         sigma = torch.exp(self.fc7(x))
         N = self.N.sample(mu.shape)
         z = mu + sigma * N
+
         self.kl = (sigma**2 + mu**2 - torch.log(sigma) - 1/2).sum()
         return z
 
@@ -84,7 +85,8 @@ def train_vae(vae, X_train_input, X_train_output, optimizer):
         x_hat = vae(batch_X_input)
 
         # Evaluate loss
-        loss = ((batch_X_output - x_hat)**2).sum() + vae.encoder.kl
+        swd = ot.sliced.sliced_wasserstein_distance(batch_X_output.detach().numpy(), x_hat.detach().numpy(), seed=0)
+        loss = ((batch_X_output - x_hat)**2).sum() + vae.encoder.kl + swd
         
         # Backward pass
         optimizer.zero_grad()
@@ -114,54 +116,14 @@ def test_vae(vae, X_test):
             x_test = x.unsqueeze(0)
             x_hat = vae(x_test)
 
-            loss = ((x - x_hat)**2).sum() + vae.encoder.kl
+            loss = ((x_test - x_hat)**2).sum() + vae.encoder.kl
             val_loss += loss.item()
 
     return val_loss / len(X_test)
 
+# yields_gen_df = pd.DataFrame(yields_gen_numpy, columns=["YIELD_1", "YIELD_2", "YIELD_3", "YIELD_4"])
 
-yields_df = pd.read_csv('CSVs/yields_subset.csv').iloc[:, 2:]
-yields_df_full = pd.read_csv('CSVs/yields_subset_full.csv').iloc[:, 2:]
-yields_tensor = torch.tensor(yields_df.values)
-yields_tensor_full = torch.tensor(yields_df_full.values)
+# print(ot.sliced.sliced_wasserstein_distance(station_df.to_numpy(), yields_gen_df.to_numpy(), seed=0))
 
-verbose = True
-epochs = 200
-lr = 1e-3
-latent_dims = 40
-
-vae = VariationalAutoencoder(latent_dims=latent_dims, input_dims=4, output_dims=4, verbose=verbose)
-optimizer = torch.optim.Adam(vae.parameters(), lr=lr) #, weight_decay=1e-3)
-
-# Train
-# ----------------------------------------------------------
-for epoch in range(epochs):
-    train_loss = train_vae(vae,yields_tensor, yields_tensor, optimizer)
-    torch.cuda.empty_cache()
-    if epoch % 10 == 0 and verbose:
-        print('\n EPOCH {}/{} \t train loss {:.3f}'.format(epoch + 1, epochs,train_loss))
-
-# SAVE MODEL
-torch.save(vae.state_dict(), 'models/vae_model.pth')
-
-# GENERATION
-# Import noise array
-noise = np.load('data/noise.npy')[:, :latent_dims]
-indx_range = np.arange(0, len(noise))
-indx_selected = np.random.choice(indx_range, size=1000, replace=False)
-noise = torch.from_numpy(noise[indx_selected])
-
-# Load the model
-generator = vae.decoder
-generator.eval()
-
-# Generate the distribution
-yields_gen_tensor = generator(noise)
-yields_gen_numpy = yields_gen_tensor.detach().numpy()
-
-yields_gen_df = pd.DataFrame(yields_gen_numpy, columns=["YIELD_1", "YIELD_2", "YIELD_3", "YIELD_4"])
-
-print(ot.sliced.sliced_wasserstein_distance(yields_df.to_numpy(), yields_gen_df.to_numpy(), seed=0))
-
-# Save the DataFrame to a CSV file
-yields_gen_df.to_csv('CSVs/vae_yields_subset.csv', index=False)
+# # Save the DataFrame to a CSV file
+# yields_gen_df.to_csv('CSVs/vae_yields_subset.csv', index=False)
