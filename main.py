@@ -2,7 +2,7 @@
 # DO NOT MODIFY THE SIMULATE FUNCTION
 ##############################################
 
-from model import generative_model
+from model_gmm_part2 import generative_model
 import numpy as np
 import logging
 
