@@ -36,7 +36,10 @@ def generative_model(noise, scenario):
 
     # Loading the model
     scen = np.argmax(scenario[0]) + 1
-    model = load(f'parameters/gmm_part2/model_{scen}.joblib')
+    # OLD
+    # model = load(f'parameters/gmm_part2/gmm_by_scenario/model_{scen}.joblib')
+    # BEST
+    model = load(f'parameters/gmm_part2/tuned_best/model_{scen}.joblib')
 
     # Getting the parameters
     weights = model.weights_
