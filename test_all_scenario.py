@@ -25,5 +25,5 @@ s = 0
 for i in range(len(size_scenario)):
     poids = (1 - size_scenario[i]/10_000)
     s += poids * SWDs[i]
-    print(f'poids {i+1} : {poids}')
+    print(f'poids * swd {i+1} : {poids * SWDs[i]}')
 print('Weighted SWD :', s)
